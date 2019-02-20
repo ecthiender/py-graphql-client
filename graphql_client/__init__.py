@@ -1,9 +1,18 @@
+# -*- coding: utf-8 -*-
+"""
+A simple GraphQL client that works over Websocket as the transport
+protocol, instead of HTTP.
+This follows the Apollo protocol.
+https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md
+"""
+
 import string
 import random
 import json
-import websocket
 import time
 import threading
+
+import websocket
 
 
 class GraphQLClient():
@@ -16,26 +25,17 @@ class GraphQLClient():
 
     def __init__(self, url):
         self.ws_url = url
-        self._conn = websocket.create_connection(self.ws_url, on_message=self._on_message)
+        self._conn = websocket.create_connection(self.ws_url,
+                                                 on_message=self._on_message)
         self._conn.on_message = self._on_message
         self._subscription_running = False
         self._st_id = None
 
-    # def _ws_init(self, on_open):
-    #     self._conn = websocket.WebSocketApp(
-    #         self.ws_url,
-    #         on_message=self._on_message,
-    #         on_open=on_open
-    #     )
-
-    # def run(self):
-    #     self._conn.run_forever()
-
-    def _on_message(self, ws, message):
-        print('recvd msg: ', message)
+    def _on_message(self, message):
         data = json.loads(message)
+        # skip keepalive messages
         if data['type'] != 'ka':
-            print('type is not ka: ', message)
+            print(message)
 
     def _conn_init(self, headers=None):
         payload = {

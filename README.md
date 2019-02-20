@@ -1,5 +1,5 @@
 # py-graphql-client
-Dead-simple to use GraphQL client over websocket. It uses the
+Dead-simple to use GraphQL client over websocket. Using the
 [apollo-transport-ws](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md)
 protocol.
 
@@ -8,7 +8,7 @@ protocol.
 ### Setup subscriptions super easily
 
 ```python
-from client import GraphQLClient
+from graphql_client import GraphQLClient
 
 ws = GraphQLClient('ws://localhost:8080/graphql')
 def callback(_id, data):
@@ -33,7 +33,7 @@ ws.stop_subscribe(sub_id)
 ### Variables can be passed
 
 ```python
-from client import GraphQLClient
+from graphql_client import GraphQLClient
 
 ws = GraphQLClient('ws://localhost:8080/graphql')
 def callback(_id, data):
@@ -52,8 +52,28 @@ query = """
 sub_id = ws.subscribe(query, variables={'limit': 10}, callback=callback)
 ```
 
-**Normal queries and mutations work as well.**
+### Normal queries and mutations work too
+
+```python
+from graphql_client import GraphQLClient
+
+ws = GraphQLClient('ws://localhost:8080/graphql')
+query = """
+  query ($limit: Int!) {
+    notifications (order_by: {created: "desc"}, limit: $limit) {
+      id
+      title
+      content
+    }
+  }
+"""
+res = ws.query(query, variables={'limit': 10})
+print(res)
+```
+
 
 ## TODO
-- should use asyncio websocket library
+- currently wss doesn't not work. support wss.
+- tests
 - support http as well
+- should use asyncio websocket library?
