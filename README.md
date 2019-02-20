@@ -28,6 +28,7 @@ sub_id = ws.subscribe(query, callback=callback)
 ...
 # later stop the subscription
 ws.stop_subscribe(sub_id)
+ws.close()
 ```
 
 ### Variables can be passed
@@ -69,6 +70,7 @@ query = """
 """
 res = ws.query(query, variables={'limit': 10})
 print(res)
+ws.close()
 ```
 
 
