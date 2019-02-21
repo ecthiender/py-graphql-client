@@ -1,17 +1,9 @@
 # -*- coding: utf-8 -*-
-import os
-import re
 from setuptools import find_packages, setup
 
-def get_version(package):
-    """
-    Return package version as listed in `__version__` in `init.py`.
-    """
-    init_py = open(os.path.join(package, '__init__.py')).read()
-    return re.search("__version__ = ['\"]([^'\"]+)['\"]", init_py).group(1)
 
-
-version = get_version('graphql_client')
+__version__ = "0.1.0"
+__desc__ = "A dead-simple graphql client that supports subscriptions over websockets."
 
 with open('README.md') as readme_file:
     readme = readme_file.read()
@@ -23,8 +15,8 @@ test_requirements = []
 
 setup(
     name='py-graphql-client',
-    version=version,
-    description="A dead-simple graphql client that supports subscriptions.",
+    version=__version__,
+    description=__desc__,
     long_description=readme,
     long_description_content_type='text/markdown',
     author="Anon Ray",
@@ -33,6 +25,7 @@ setup(
     packages=find_packages(exclude=['tests', 'tests.*']),
     package_data={'': ['LICENSE']},
     package_dir={'graphql_client': 'graphql_client'},
+    python_requires=">=3.4",
     include_package_data=True,
     install_requires=requirements,
     license="BSD3",
