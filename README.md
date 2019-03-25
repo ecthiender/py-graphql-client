@@ -3,6 +3,12 @@ Dead-simple to use GraphQL client over websocket. Using the
 [apollo-transport-ws](https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md)
 protocol.
 
+## Install
+
+```bash
+pip install py-graphql-client
+```
+
 ## Examples
 
 ### Setup subscriptions super easily
