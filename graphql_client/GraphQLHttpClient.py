@@ -9,3 +9,6 @@ class GraphQLHttpClient:
         payload = { 'headers': headers, 'query' : query, 'variables': variables }
         resp = requests.post(self.http_url, json=payload)
         return resp
+
+    def mutation(self, query, variables=None, headers=None):
+        return self.query(query, variables, headers)
