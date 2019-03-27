@@ -45,11 +45,13 @@ class GraphQLClient():
         self._conn.send(json.dumps(payload))
         self._conn.recv()
 
+
     def _start(self, payload):
         _id = gen_id()
         frame = {'id': _id, 'type': 'start', 'payload': payload}
         self._conn.send(json.dumps(frame))
-        self._conn.recv()
+        # commenting this as the spec excepts data after start and subscription misses the first data if data is received here
+        # res = self._conn.recv()
         return _id
 
     def _stop(self, _id):
@@ -61,8 +63,8 @@ class GraphQLClient():
         self._conn_init(headers)
         payload = {'headers': headers, 'query': query, 'variables': variables}
         _id = self._start(payload)
-        self._conn.recv()
-        res = self._stop(_id)
+        res = self._conn.recv()
+        self._stop(_id)
         #print(dir(self._conn))
         return res
 
