@@ -65,7 +65,6 @@ class GraphQLClient():
         _id = self._start(payload)
         res = self._conn.recv()
         self._stop(_id)
-        #print(dir(self._conn))
         return res
 
     def subscribe(self, query, variables=None, headers=None, callback=None):
@@ -90,9 +89,11 @@ class GraphQLClient():
         return _id
 
     def stop_subscribe(self, _id):
-        self._subscription_running = False
-        self._st_id.join()
-        self._stop(_id)
+        if self._subscription_running:
+            self._subscription_running = False
+            if threading.current_thread() == self._st_id:
+                self._st_id.join()
+            self._stop(_id)
 
     def close(self):
         self._conn.close()
