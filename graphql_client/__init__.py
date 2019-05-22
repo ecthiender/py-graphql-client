@@ -32,10 +32,13 @@ class GraphQLClient:
         self._subscription_running = False
         self._subscription_thread = None
 
+    def _kill_subscription_thread(self):
+        if self._subscription_thread:
+            self._subscription_running = False
+            self._subscription_thread.join()
+            self._subscription_thread = None
+
     def _on_message(self, query_id, message):
-        if message["type"] == "ka":
-            # skip keepalive messages
-            return
         print(message)
 
     def _conn_init(self, headers=None):
@@ -85,11 +88,11 @@ class GraphQLClient:
         return query_id
 
     def stop_subscription(self, query_id):
-        self._subscription_running = False
-        self._subscription_thread.join()
+        self._kill_subscription_thread()
         self._stop(query_id)
 
     def close(self):
+        self._kill_subscription_thread()
         self._conn.close()
 
 
