@@ -15,7 +15,7 @@ import threading
 import websocket
 
 
-GQL_SUBPROTOCOL_HEADER = "Sec-WebSocket-Protocol: graphql-ws"
+GQL_WS_SUBPROTOCOL = "graphql-ws"
 
 
 class GraphQLClient():
@@ -28,10 +28,9 @@ class GraphQLClient():
 
     def __init__(self, url):
         self.ws_url = url
-
         self._conn = websocket.create_connection(self.ws_url,
                                                  on_message=self._on_message,
-                                                 header=[GQL_SUBPROTOCOL_HEADER])
+                                                 subprotocols=[GQL_WS_SUBPROTOCOL])
         self._conn.on_message = self._on_message
         self._subscription_running = False
         self._st_id = None
@@ -49,7 +48,6 @@ class GraphQLClient():
         }
         self._conn.send(json.dumps(payload))
         self._conn.recv()
-
 
     def _start(self, payload):
         _id = gen_id()
