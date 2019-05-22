@@ -12,7 +12,7 @@ import json
 import time
 import threading
 
-import websocket
+from websocket import create_connection
 
 
 GQL_WS_SUBPROTOCOL = "graphql-ws"
@@ -28,10 +28,7 @@ class GraphQLClient:
 
     def __init__(self, url):
         self.ws_url = url
-        self._conn = websocket.create_connection(self.ws_url,
-                                                 on_message=self._on_message,
-                                                 subprotocols=[GQL_WS_SUBPROTOCOL])
-        self._conn.on_message = self._on_message
+        self._conn = create_connection(self.ws_url, subprotocols=[GQL_WS_SUBPROTOCOL])
         self._subscription_running = False
         self._st_id = None
 
