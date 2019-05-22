@@ -30,13 +30,13 @@ class GraphQLClient:
         self.ws_url = url
         self._conn = create_connection(self.ws_url, subprotocols=[GQL_WS_SUBPROTOCOL])
         self._subscription_running = False
-        self._st_id = None
+        self._subscription_thread = None
 
-    def _on_message(self, message):
-        data = json.loads(message)
-        # skip keepalive messages
-        if data["type"] != "ka":
-            print(message)
+    def _on_message(self, query_id, message):
+        if message["type"] == "ka":
+            # skip keepalive messages
+            return
+        print(message)
 
     def _conn_init(self, headers=None):
         payload = {"type": "connection_init", "payload": {"headers": headers}}
@@ -44,50 +44,50 @@ class GraphQLClient:
         self._conn.recv()
 
     def _start(self, payload):
-        _id = gen_id()
-        frame = {"id": _id, "type": "start", "payload": payload}
+        query_id = gen_id()
+        frame = {"id": query_id, "type": "start", "payload": payload}
         self._conn.send(json.dumps(frame))
-        return _id
+        return query_id
 
-    def _stop(self, _id):
-        payload = {"id": _id, "type": "stop"}
+    def _stop(self, query_id):
+        payload = {"id": query_id, "type": "stop"}
         self._conn.send(json.dumps(payload))
         return self._conn.recv()
 
     def query(self, query, variables=None, headers=None):
         self._conn_init(headers)
         payload = {"headers": headers, "query": query, "variables": variables}
-        _id = self._start(payload)
-        res = self._conn.recv()
-        self._stop(_id)
-        return res
+        query_id = self._start(payload)
+        resp = json.loads(self._conn.recv())
+        self._stop(query_id)
+        return resp
 
     def subscribe(self, query, variables=None, headers=None, callback=None):
         self._conn_init(headers)
         payload = {"headers": headers, "query": query, "variables": variables}
-        _cc = self._on_message if not callback else callback
-        _id = self._start(payload)
+        callback = callback or self._on_message
+        query_id = self._start(payload)
 
-        def subs(_cc):
+        def subs():
             self._subscription_running = True
             while self._subscription_running:
-                r = json.loads(self._conn.recv())
-                if r["type"] == "error" or r["type"] == "complete":
-                    print(r)
-                    self.stop_subscribe(_id)
+                resp = json.loads(self._conn.recv())
+                if resp["type"] == "error" or resp["type"] == "complete":
+                    print(resp)
+                    self.stop_subscription(query_id)
                     break
-                elif r["type"] != "ka":
-                    _cc(_id, r)
+                elif resp["type"] != "ka":
+                    callback(query_id, resp)
                 time.sleep(1)
 
-        self._st_id = threading.Thread(target=subs, args=(_cc,))
-        self._st_id.start()
-        return _id
+        self._subscription_thread = threading.Thread(target=subs)
+        self._subscription_thread.start()
+        return query_id
 
-    def stop_subscribe(self, _id):
+    def stop_subscription(self, query_id):
         self._subscription_running = False
-        self._st_id.join()
-        self._stop(_id)
+        self._subscription_thread.join()
+        self._stop(query_id)
 
     def close(self):
         self._conn.close()
