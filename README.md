@@ -81,7 +81,6 @@ ws.close()
 
 
 ## TODO
-- currently wss doesn't not work. support wss.
 - tests
 - support http as well
 - should use asyncio websocket library?
