@@ -11,6 +11,7 @@ import random
 import json
 import time
 import threading
+import uuid
 
 import websocket
 
@@ -50,7 +51,7 @@ class GraphQLClient():
         self._conn.recv()
 
     def _start(self, payload):
-        _id = gen_id()
+        _id = uuid.uuid4()
         frame = {'id': _id, 'type': 'start', 'payload': payload}
         self._conn.send(json.dumps(frame))
         return _id
@@ -96,8 +97,3 @@ class GraphQLClient():
 
     def close(self):
         self._conn.close()
-
-
-# generate random alphanumeric id
-def gen_id(size=6, chars=string.ascii_letters + string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
