@@ -1,9 +1,31 @@
 import time
 from graphql_client import GraphQLClient
 
-q = """
-query {
-  allUsers { id username }
+# some sample GraphQL server which supports websocket transport and subscription
+ws = GraphQLClient('ws://localhost:5000/graphql')
+
+## Simple Query Example ##
+
+# query example with GraphQL variables
+query = """
+query getUser($userId: Int!) {
+  user (id: $userId) {
+    id
+    username
+  }
+}
+"""
+
+# This is a blocking call, you receive response in the `res` variable
+res = ws.query(query, variables={'userId': 42})
+print(res)
+ws.close()
+
+
+## Subscription Example ##
+
+subscription_query = """
+subscription getUser {
   user (id: 2) {
     id
     username
@@ -11,56 +33,14 @@ query {
 }
 """
 
-q1 = """
-query {
-  companies (where: {id: {_eq: 1}}) {
-    id
-    name
-    created_at
-  }
-}
-"""
+def my_callback(sub_id, data):
+    print(f'Got data for Sub ID: {sub_id}. Data: {data}')
 
-insert_author = """
-mutation insertAuthor($name: String!) {
-    createAuthor (name: $name) {
-      author {
-        id
-        name
-      }
-    }
-}
-"""
+sub_id = ws.subscribe(subscription_query, callback=my_callback)
 
-sub = """
-subscription {
-  articles {
-    id title
-  }
-}
-"""
-
-def cb(id, data):
-    print('got new data: ', data)
-
-print('starting web socket client')
-#websocket.enableTrace(True)
-ws = GraphQLClient('ws://localhost:8080/v1alpha1/graphql')
-
-res = ws.query(q)
-print(res)
-res = ws.query(q1)
-print(res)
-
-subalive = 10
-wait = 40
-
-id = ws.subscribe(sub, callback=cb)
-print(f'started subscriptions, will keep it alive for {subalive} seconds')
-time.sleep(subalive)
-print(f'{subalive} seconds over, stopping the subscription')
-ws.stop_subscribe(id)
-
-print(f'subscription stopped. waiting {wait} seconds to close the connection')
-time.sleep(wait)
+# do some operation while the subscription is running...
+print(f'started subscriptions, will keep it alive for 4 seconds')
+time.sleep(4)
+print(f'4 seconds over, stopping the subscription')
+ws.stop_subscribe(sub_id)
 ws.close()
