@@ -9,7 +9,6 @@ https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL
 import string
 import random
 import json
-import time
 import threading
 
 import websocket
@@ -83,7 +82,6 @@ class GraphQLClient():
                     break
                 elif r['type'] != 'ka':
                     _cc(_id, r)
-                time.sleep(1)
 
         self._st_id = threading.Thread(target=subs, args=(_cc,))
         self._st_id.start()
