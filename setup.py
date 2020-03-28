@@ -2,7 +2,7 @@
 from setuptools import find_packages, setup
 
 
-__version__ = "0.1.1"
+__version__ = "0.1.1-beta.1"
 __desc__ = "A dead-simple graphql client that supports subscriptions over websockets."
 
 with open('README.md') as readme_file:
