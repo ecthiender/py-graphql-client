@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 from setuptools import find_packages, setup
 
-
-__version__ = "0.1.1"
+__version__ = "0.2.0-beta.1"
 __desc__ = "A dead-simple graphql client that supports subscriptions over websockets."
 
 with open('README.md') as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    'websocket-client==0.54.0'
+    'websocket-client==0.54.0',
+    'requests'
 ]
 test_requirements = []
 
@@ -37,7 +37,7 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Environment :: Console',
         'Environment :: Web Environment',
         'Environment :: Other Environment',
