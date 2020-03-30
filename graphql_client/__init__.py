@@ -51,7 +51,7 @@ class GraphQLClient():
         self._conn.recv()
 
     def _start(self, payload):
-        _id = uuid.uuid4()
+        _id = uuid.uuid4().hex
         frame = {'id': _id, 'type': 'start', 'payload': payload}
         self._conn.send(json.dumps(frame))
         return _id
