@@ -1,3 +1,9 @@
+project_dir := $(shell pwd)
+
+test: export PYTHONPATH := $(project_dir)
+test:
+	python tests/test.py
+
 install:
 	python setup.py install
 
