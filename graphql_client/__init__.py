@@ -11,6 +11,7 @@ import string
 import random
 import json
 import threading
+import uuid
 
 import websocket
 
@@ -91,7 +92,7 @@ class GraphQLClient():
         raise ConnectionException(err_msg)
 
     def _start(self, payload):
-        _id = gen_id()
+        _id = uuid.uuid4().hex
         frame = {'id': _id, 'type': GQL_START, 'payload': payload}
         self._connection.send(json.dumps(frame))
         return _id
@@ -149,8 +150,3 @@ class GraphQLClient():
 
     def close(self):
         self._connection.close()
-
-
-# generate random alphanumeric id
-def gen_id(size=6, chars=string.ascii_letters + string.digits):
-    return ''.join(random.choice(chars) for _ in range(size))
