@@ -1,16 +1,15 @@
 import time
-import websocket
 from graphql_client import GraphQLClient
 
 # some sample GraphQL server which supports websocket transport and subscription
- ws = GraphQLClient('ws://localhost:5000/graphql')
+client = GraphQLClient('ws://localhost:9001')
 
-## Simple Query Example ##
+# Simple Query Example
 
 # query example with GraphQL variables
 query = """
 query getUser($userId: Int!) {
-  user (id: $userId) {
+  users (id: $userId) {
     id
     username
   }
@@ -19,30 +18,31 @@ query getUser($userId: Int!) {
 
 # This is a blocking call, you receive response in the `res` variable
 
-res = ws.query(q1, variables={'userId': 2})
-print(res)
+print('Making a query first')
+res = client.query(query, variables={'userId': 2})
+print('query result', res)
 
 
-## Subscription Example ##
+# Subscription Example
 
 subscription_query = """
 subscription getUser {
-  user (id: 2) {
+  users (id: 2) {
     id
     username
   }
 }
 """
 
-def my_callback(_id, data):
-    print(f"Got data for Sub ID: {_id}. Data: {data}")
+# Our callback function, which will be called and passed data everytime new data is available
+def my_callback(op_id, data):
+    print(f"Got data for Operation ID: {op_id}. Data: {data}")
 
-# sub_id = ws.subscribe(subscription_query, callback=my_callback)
-sub_id = ws.subscribe(s1, variables={'userId': 2}, callback=my_callback)
+print('Making a graphql subscription now...')
+sub_id = client.subscribe(subscription_query, callback=my_callback)
+print('Created subscription and waiting. Callback function is called whenever there is new data')
 
-# do some operation while the subscription is running...
-print(f'started subscriptions, will keep it alive for 4 seconds')
-time.sleep(4)
-print(f'4 seconds over, stopping the subscription')
-ws.stop_subscribe(sub_id)
-ws.close()
+#  do some operation while the subscription is running...
+time.sleep(10)
+client.stop_subscribe(sub_id)
+client.close()
