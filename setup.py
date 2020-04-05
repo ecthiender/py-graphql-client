@@ -12,9 +12,7 @@ requirements = [
     'websocket-client==0.54.0'
 ]
 
-test_requirements = [
-    'websocket-server'
-]
+test_requirements = []
 
 setup(
     name='py-graphql-client',
