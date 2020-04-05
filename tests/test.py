@@ -3,7 +3,7 @@ import json
 import threading
 import unittest
 
-from websocket_server import WebsocketServer
+from .websocket_server import WebsocketServer
 from graphql_client import *
 
 # The protocol:
