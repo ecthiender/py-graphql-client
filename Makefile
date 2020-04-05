@@ -1,8 +1,8 @@
 project_dir := $(shell pwd)
 
-test: export PYTHONPATH := $(project_dir)
 test:
-	python tests/test.py
+test:
+	python -m unittest tests.test
 
 install:
 	python setup.py install

@@ -36,6 +36,8 @@ logging.basicConfig()
 class ConnectionException(Exception):
     """Exception thrown during connection errors to the GraphQL server"""
 
+class InvalidPayloadException(Exception):
+    """Exception thrown if payload recived from server is mal-formed or cannot be parsed """
 
 class GraphQLClient():
     """
@@ -68,13 +70,19 @@ class GraphQLClient():
         self._recevier_thread = threading.Thread(target=self._receiver_task)
         self._recevier_thread.start()
 
+    def __dump_queues(self):
+        logging.debug('[GQL_CLIENT] => Dump of all the internal queues')
+        logging.debug('[GQL_CLIENT] => Global queue => \n %s', self._queue.queue)
+        dumps = list(map(lambda q: (q[0], q[1].queue), self._subscriber_queues.items()))
+        logging.debug('[GQL_CLIENT] => Operation queues: \n %s', dumps)
+
     # wait for any valid message, while ignoring GQL_CONNECTION_KEEP_ALIVE
     def _receiver_task(self):
         """the recieve function of the client. Which validates response from the
         server and queues data """
         while not self._shutdown_receiver:
+            self.__dump_queues()
             res = self._connection.recv()
-
             try:
                 msg = json.loads(res)
             except json.JSONDecodeError as err:
@@ -82,11 +90,21 @@ class GraphQLClient():
 
             # ignore messages which are GQL_CONNECTION_KEEP_ALIVE
             if msg['type'] != GQL_CONNECTION_KEEP_ALIVE:
+
+                # check all GQL_DATA and GQL_COMPLETE should have 'id'.
+                # Otherwise, server is sending malformed responses, error out!
+                if msg['type'] in [GQL_DATA, GQL_COMPLETE] and 'id' not in msg:
+                    # TODO: main thread can't catch this exception; setup
+                    # exception queues. but this scenario will only happen with
+                    # servers having glaring holes in implementing the protocol
+                    # correctly, which is rare. hence this is not very urgent
+                    raise InvalidPayloadException(f'Protocol Violation. Expected "id" in {msg}, but could not find')
+
+                # if the message has an id, it is meant for a particular operation
                 if 'id' in msg:
                     op_id = msg['id']
 
-                    # if the message has an id, it is meant for an operation;
-                    # put it in the correct subscriber queue
+                    # put it in the correct operation/subscriber queue
                     if op_id in self._subscriber_queues:
                         self._subscriber_queues[op_id].put(msg)
                     else:
@@ -96,10 +114,9 @@ class GraphQLClient():
                     # if a callback fn exists with the id, call it
                     if op_id in self._subscriber_callbacks:
                         user_fn = self._subscriber_callbacks[op_id]
-                        if callable(user_fn):
-                            user_fn(op_id, msg)
-                        else:
-                            logging.warning('Unexpected! %s is not a function!', user_fn)
+                        user_fn(op_id, msg)
+
+                # if it doesn't have an id, put in the global queue
                 else:
                     self._queue.put(msg)
 
