@@ -237,3 +237,11 @@ class GraphQLClient():
         self._shutdown_receiver = True
         self._connection.close()
         self._recevier_thread.join()
+
+    def __enter__(self):
+        """ enter method for context manager """
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        """ exit method for context manager """
+        self.close()
