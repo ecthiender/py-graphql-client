@@ -81,6 +81,5 @@ ws.close()
 
 
 ## TODO
-- tests
 - support http as well
 - should use asyncio websocket library?
