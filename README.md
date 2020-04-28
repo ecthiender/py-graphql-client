@@ -55,13 +55,12 @@ query = """
   """
 
 with GraphQLClient('ws://localhost:8080/graphql') as client:
-  sub_id = ws.subscribe(query, variables={'limit': 10}, callback=callback)
+  sub_id = client.subscribe(query, variables={'limit': 10}, callback=callback)
   # ...
 
 def callback(_id, data):
   print("got new data..")
   print(f"msg id: {_id}. data: {data}")
-
 
 ```
 
