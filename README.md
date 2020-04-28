@@ -127,7 +127,7 @@ query = """
   }
 """
 
-client = GraphQLClient('ws://localhost:8080/graphql') as client:
+client = GraphQLClient('ws://localhost:8080/graphql')
 res = client.query(query, variables={'limit': 10}, headers={'Authorization': 'Bearer xxxx'})
 print(res)
 client.close()
