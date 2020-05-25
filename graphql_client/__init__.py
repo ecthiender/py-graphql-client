@@ -30,7 +30,8 @@ GQL_ERROR = 'error'
 GQL_COMPLETE = 'complete'
 GQL_CONNECTION_KEEP_ALIVE = 'ka'
 
-logging.basicConfig()
+logger = logging.getLogger(__name__)
+logger.addHandler(logging.NullHandler())
 
 
 class ConnectionException(Exception):
@@ -71,10 +72,10 @@ class GraphQLClient():
         self._recevier_thread.start()
 
     def __dump_queues(self):
-        logging.debug('[GQL_CLIENT] => Dump of all the internal queues')
-        logging.debug('[GQL_CLIENT] => Global queue => \n %s', self._queue.queue)
+        logger.debug('[GQL_CLIENT] => Dump of all the internal queues')
+        logger.debug('[GQL_CLIENT] => Global queue => \n %s', self._queue.queue)
         dumps = list(map(lambda q: (q[0], q[1].queue), self._subscriber_queues.items()))
-        logging.debug('[GQL_CLIENT] => Operation queues: \n %s', dumps)
+        logger.debug('[GQL_CLIENT] => Operation queues: \n %s', dumps)
 
     # wait for any valid message, while ignoring GQL_CONNECTION_KEEP_ALIVE
     def _receiver_task(self):
@@ -86,7 +87,7 @@ class GraphQLClient():
             try:
                 msg = json.loads(res)
             except json.JSONDecodeError as err:
-                logging.warning('Ignoring. Server sent invalid JSON data: %s \n %s', res, err)
+                logger.warning('Ignoring. Server sent invalid JSON data: %s \n %s', res, err)
 
             # ignore messages which are GQL_CONNECTION_KEEP_ALIVE
             if msg['type'] != GQL_CONNECTION_KEEP_ALIVE:
@@ -190,7 +191,7 @@ class GraphQLClient():
         self._stop(op_id)
         ack = self._get_operation_result(op_id)
         if ack['type'] != GQL_COMPLETE:
-            logging.warning('Expected to recieve complete, but received: %s', ack)
+            logger.warning('Expected to recieve complete, but received: %s', ack)
         self._remove_operation_queue(op_id)
         return res
 
