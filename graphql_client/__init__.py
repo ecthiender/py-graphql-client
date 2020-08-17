@@ -235,8 +235,8 @@ class GraphQLClient():
         method.
         """
         self._shutdown_receiver = True
-        self._connection.close()
         self._recevier_thread.join()
+        self._connection.close()
 
     def __enter__(self):
         """ enter method for context manager """
