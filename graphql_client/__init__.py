@@ -146,7 +146,7 @@ class GraphQLClient():
 
         self._headers = headers
         # send the `connection_init` message with the payload
-        payload = {'type': GQL_CONNECTION_INIT, 'payload': {'headers': headers}}
+        payload = {'type': GQL_CONNECTION_INIT, 'payload': headers}
         self._connection.send(json.dumps(payload))
 
         res = self._queue.get()
