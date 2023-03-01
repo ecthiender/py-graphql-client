@@ -58,6 +58,7 @@ class GraphQLClient():
         # map of queues for each subscriber
         self._subscriber_queues = {}
         self._shutdown_receiver = False
+        self._subscriptions = []
         self.connect()
 
     def connect(self) -> None:
@@ -70,6 +71,16 @@ class GraphQLClient():
         self._recevier_thread = threading.Thread(target=self._receiver_task)
         self._recevier_thread.start()
 
+    def _reconnect(self):
+        subscriptions = self._subscriptions
+        self.__init__(self.ws_url)
+
+        for subscription in subscriptions:
+            self.subscribe(query=subscription['query'],
+                           variables=subscription['variables'],
+                           headers=subscription['headers'],
+                           callback=subscription['callback'])
+
     def __dump_queues(self):
         logging.debug('[GQL_CLIENT] => Dump of all the internal queues')
         logging.debug('[GQL_CLIENT] => Global queue => \n %s', self._queue.queue)
@@ -80,13 +91,21 @@ class GraphQLClient():
     def _receiver_task(self):
         """the recieve function of the client. Which validates response from the
         server and queues data """
-        while not self._shutdown_receiver:
+        reconnected = False
+        while not self._shutdown_receiver and not reconnected:
             self.__dump_queues()
-            res = self._connection.recv()
+            try:
+                res = self._connection.recv()
+            except websocket._exceptions.WebSocketConnectionClosedException as e:
+                self._reconnect()
+                reconnected = True
+                continue
+
             try:
                 msg = json.loads(res)
             except json.JSONDecodeError as err:
                 logging.warning('Ignoring. Server sent invalid JSON data: %s \n %s', res, err)
+                continue
 
             # ignore messages which are GQL_CONNECTION_KEEP_ALIVE
             if msg['type'] != GQL_CONNECTION_KEEP_ALIVE:
@@ -120,7 +139,6 @@ class GraphQLClient():
                 # if it doesn't have an id, put in the global queue
                 else:
                     self._queue.put(msg)
-
 
     def _insert_subscriber(self, op_id, callback_fn):
         self._subscriber_callbacks[op_id] = callback_fn
@@ -212,12 +230,18 @@ class GraphQLClient():
         """
 
         # sanity check that the user passed a valid function
-        if not callback and not callable(callback):
+        if not callback or not callable(callback):
             raise TypeError('the argument `callback` is mandatory and it should be a function')
 
         self._connection_init(headers)
         payload = {'headers': headers, 'query': query, 'variables': variables}
         op_id = self._start(payload, callback)
+        self._subscriptions.append({
+            'query': query,
+            'variables': variables,
+            'headers': headers,
+            'callback': callback
+        })
         return op_id
 
     def stop_subscribe(self, op_id: str) -> None:
