@@ -26,17 +26,16 @@ query = """
   }
 """
 
-with GraphQLClient('ws://localhost:8080/graphql') as client:
+def callback(_id, data):
+  print("got new data..")
+  print(f"msg id: {_id}. data: {data}")
 
+with GraphQLClient('ws://localhost:8080/graphql') as client:
   sub_id = client.subscribe(query, callback=callback)
   # do other stuff
   # ...
   # later stop the subscription
   client.stop_subscribe(sub_id)
-
-def callback(_id, data):
-  print("got new data..")
-  print(f"msg id: {_id}. data: {data}")
 ```
 
 ### Variables can be passed
@@ -54,14 +53,13 @@ query = """
     }
   """
 
-with GraphQLClient('ws://localhost:8080/graphql') as client:
-  sub_id = client.subscribe(query, variables={'limit': 10}, callback=callback)
-  # ...
-
 def callback(_id, data):
   print("got new data..")
   print(f"msg id: {_id}. data: {data}")
 
+with GraphQLClient('ws://localhost:8080/graphql') as client:
+  sub_id = client.subscribe(query, variables={'limit': 10}, callback=callback)
+  # ...
 ```
 
 ### Headers can be passed too
@@ -79,6 +77,10 @@ query = """
     }
   """
 
+def callback(_id, data):
+  print("got new data..")
+  print(f"msg id: {_id}. data: {data}")
+
 with GraphQLClient('ws://localhost:8080/graphql') as client:
   sub_id = client.subscribe(query,
                             variables={'limit': 10},
@@ -86,10 +88,6 @@ with GraphQLClient('ws://localhost:8080/graphql') as client:
                             callback=callback)
   ...
   client.stop_subscribe(sub_id)
-
-def callback(_id, data):
-  print("got new data..")
-  print(f"msg id: {_id}. data: {data}")
 ```
 
 ### Normal queries and mutations work too

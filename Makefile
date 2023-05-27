@@ -1,7 +1,6 @@
 project_dir := $(shell pwd)
 
 test:
-test:
 	python -m unittest tests.test
 
 install:
